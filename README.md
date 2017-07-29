@@ -6,4 +6,5 @@ A golang image server. Reimplementation of [attache](https://github.com/choonkea
 - implements [attache-api](https://github.com/choonkeat/attache-api#testing-against-an-attache-compatible-server)
 
 ## Tests
+- `go test ./...`
 - Check attache compatibility: `docker-compose up api-test`

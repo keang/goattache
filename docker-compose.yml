@@ -1,4 +1,7 @@
 version: "3"
+networks:
+  outside:
+     external: true
 services:
   server:
     build:
@@ -11,9 +14,12 @@ services:
   api-test:
     build:
       context: ./
-      dockerfile: Dockerfile-test
+      dockerfile: Dockerfile-api-test
     links:
       - server
+    networks:
+      - outside
     environment:
-      - ATTACHE_URL=http://server:9292
+      - ATTACHE_URL=http://localhost:8080
+      - ATTACHE_SECRET_KEY=secretkey
       - TEST=test/attache/api/v1_test.rb
