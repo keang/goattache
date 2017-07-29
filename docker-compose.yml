@@ -3,6 +3,10 @@ services:
   server:
     build:
       context: ./
+    volumes:
+      - ./:/go/src/app
+    ports:
+      - 9292:9292
 
   api-test:
     build:
@@ -12,3 +16,4 @@ services:
       - server
     environment:
       - ATTACHE_URL=http://server:9292
+      - TEST=test/attache/api/v1_test.rb
