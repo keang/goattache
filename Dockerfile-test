@@ -1,0 +1,8 @@
+FROM ruby:2.4-alpine
+RUN apk update && apk upgrade && \
+    apk add --no-cache bash git openssh
+RUN git clone https://github.com/choonkeat/attache-api
+RUN apk add --update alpine-sdk
+WORKDIR attache-api
+RUN bundle install
+CMD rake

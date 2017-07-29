@@ -1,0 +1,14 @@
+version: "3"
+services:
+  server:
+    build:
+      context: ./
+
+  api-test:
+    build:
+      context: ./
+      dockerfile: Dockerfile-test
+    links:
+      - server
+    environment:
+      - ATTACHE_URL=http://server:9292
