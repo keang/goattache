@@ -14,8 +14,8 @@ func main() {
 	secret := flag.String("secret", os.Getenv("ATTACHE_SECRET_KEY"), "secret key for hmac signature")
 	flag.Parse()
 	g := Goattache{}
-	upload := http.HandlerFunc(g.UploadHandler)
-	http.Handle("/upload", middlewares.Authorize(*secret, upload))
+	uploadHandler := http.HandlerFunc(g.UploadHandler)
+	http.Handle("/upload", middlewares.Authorize(*secret, uploadHandler))
 	log.Printf("Listening to %v", *port)
 	log.Fatal(http.ListenAndServe(":"+*port, nil))
 }

@@ -24,15 +24,10 @@ func TestNoAuthorization(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/example", nil)
 	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Error("Wrong status code")
-	}
-	if hException := rr.Header().Get("X-Exception"); hException != "" {
-		t.Error("Wrong X-Exception header.")
-	}
-	if body, _ := ioutil.ReadAll(rr.Body); string(body) != "pass" {
-		t.Error("Wrong response body")
-	}
+	utils.Assert("is OK", rr.Code == http.StatusOK, t)
+	utils.Assert("empty exception", rr.Header().Get("X-Exception") == "", t)
+	body, _ := ioutil.ReadAll(rr.Body)
+	utils.Assert("correct body", string(body) == "pass", t)
 }
 
 func TestInvalidSignature(t *testing.T) {
@@ -48,12 +43,8 @@ func TestInvalidSignature(t *testing.T) {
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusUnauthorized {
-		t.Error("Wrong status code.")
-	}
-	if hException := rr.Header().Get("X-Exception"); hException != "Authorization failed" {
-		t.Error("Wrong X-Exception header.")
-	}
+	utils.Assert("is UNAUTHORIZED", rr.Code == http.StatusUnauthorized, t)
+	utils.Assert("contains exception", rr.Header().Get("X-Exception") == "Authorization failed", t)
 }
 
 func TestValidAuthorization(t *testing.T) {
@@ -70,13 +61,8 @@ func TestValidAuthorization(t *testing.T) {
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Error("Wrong status code.")
-	}
-	if hException := rr.Header().Get("X-Exception"); hException != "" {
-		t.Error("Wrong X-Exception header.")
-	}
-	if body, _ := ioutil.ReadAll(rr.Body); string(body) != "pass" {
-		t.Error("Wrong response body")
-	}
+	utils.Assert("is OK", rr.Code == http.StatusOK, t)
+	utils.Assert("empty exception", rr.Header().Get("X-Exception") == "", t)
+	body, _ := ioutil.ReadAll(rr.Body)
+	utils.Assert("correct body", string(body) == "pass", t)
 }
