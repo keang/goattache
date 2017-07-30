@@ -28,6 +28,8 @@ func main() {
 	g := Goattache{Store: store.Disk{dataDir}}
 	uploadHandler := http.HandlerFunc(g.UploadHandler)
 	http.Handle("/upload", middlewares.Authorize(secret, uploadHandler))
+	// trailling slash /view/ to match subtrees
+	http.Handle("/view/", http.HandlerFunc(g.DownloadHandler))
 	log.Printf("Listening to %v", *portFlag)
 	log.Fatal(http.ListenAndServe(":"+*portFlag, nil))
 }

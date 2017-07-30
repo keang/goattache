@@ -22,7 +22,7 @@ func TestUploadHandler(t *testing.T) {
 	assert := testutils.Assert{t}
 	rr := httptest.NewRecorder()
 	g := Goattache{Store: store.Disk{"tmp"}}
-	filename := "Exãmpl%e _1.234 _20.png"
+	filename := "images/Exãmpl%e _1.234 _20.png"
 	secret := "topsecret"
 	handler := middlewares.Authorize(secret, http.HandlerFunc(g.UploadHandler))
 

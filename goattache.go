@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -36,6 +37,21 @@ func (g Goattache) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, string(jsonStr))
+}
+
+func (g Goattache) DownloadHandler(w http.ResponseWriter, r *http.Request) {
+	paths := strings.Split(r.URL.Path, "/") // path is "/view/#{directory}/#{geometry}/#{filename}
+	geometry, filename := paths[len(paths)-2], paths[len(paths)-1]
+	directory := paths[2 : len(paths)-2]
+	file, err := g.Store.Get(filepath.Join(append(directory, filename)...), geometry)
+	log.Println(directory, filename)
+	if err != nil {
+		log.Printf("%v: %v", http.StatusInternalServerError, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", file.ContentType)
+	defer file.Close()
+	io.Copy(w, file)
 }
 
 func generatePath(name string) string {

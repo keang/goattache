@@ -42,28 +42,39 @@ func (d Disk) Save(reader io.Reader, relPath string) (f SavedFile, e error) {
 		return
 	}
 	file.Close()
-	f, e = d.Open(relPath)
+	f, e = d.Get(relPath, "")
+	defer f.Close()
 	return
 }
 
-func (d Disk) Open(relPath string) (f SavedFile, e error) {
-	f.Path = relPath
+func (d Disk) Get(relPath string, geometry string) (f SavedFile, e error) {
 	file, e := os.Open(d.finalPath(relPath))
 	if e != nil {
 		return
 	}
-	defer file.Close()
 	conf, format, e := image.DecodeConfig(file)
 	if e != nil {
+		file.Close()
 		return
 	}
-	f.Geometry = fmt.Sprintf("%vx%v", conf.Width, conf.Height)
-	f.ContentType = "image/" + format
-
+	_, e = file.Seek(0, 0)
+	if e != nil {
+		file.Close()
+		return
+	}
 	stat, e := file.Stat()
 	if e != nil {
+		file.Close()
 		return
 	}
-	f.Size = stat.Size()
+
+	f = SavedFile{
+		File:        file,
+		Path:        relPath,
+		Geometry:    fmt.Sprintf("%vx%v", conf.Width, conf.Height),
+		Size:        stat.Size(),
+		ContentType: "image/" + format,
+	}
+
 	return
 }
