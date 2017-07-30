@@ -9,10 +9,10 @@ type Assert struct {
 	*testing.T
 }
 
-func (a *Assert) True(truth bool) {
-	if !truth {
+func (a *Assert) Equal(x interface{}, y interface{}) {
+	if x != y {
 		_, file, line, _ := runtime.Caller(1)
-		a.Errorf("%v:%v failed", file, line)
+		a.Errorf("%v:%v %+v != %+v", file, line, x, y)
 	}
 }
 

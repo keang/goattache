@@ -26,10 +26,10 @@ func TestNoAuthorization(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/example", nil)
 	handler.ServeHTTP(rr, req)
-	assert.True(rr.Code == http.StatusOK)
-	assert.True(rr.Header().Get("X-Exception") == "")
+	assert.Equal(rr.Code, http.StatusOK)
+	assert.Equal(rr.Header().Get("X-Exception"), "")
 	body, _ := ioutil.ReadAll(rr.Body)
-	assert.True(string(body) == "pass")
+	assert.Equal(string(body), "pass")
 }
 
 func TestInvalidSignature(t *testing.T) {
@@ -46,8 +46,8 @@ func TestInvalidSignature(t *testing.T) {
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	handler.ServeHTTP(rr, req)
-	assert.True(rr.Code == http.StatusUnauthorized)
-	assert.True(rr.Header().Get("X-Exception") == "Authorization failed")
+	assert.Equal(rr.Code, http.StatusUnauthorized)
+	assert.Equal(rr.Header().Get("X-Exception"), "Authorization failed")
 }
 
 func TestValidAuthorization(t *testing.T) {
@@ -65,8 +65,8 @@ func TestValidAuthorization(t *testing.T) {
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	handler.ServeHTTP(rr, req)
-	assert.True(rr.Code == http.StatusOK)
-	assert.True(rr.Header().Get("X-Exception") == "")
+	assert.Equal(rr.Code, http.StatusOK)
+	assert.Equal(rr.Header().Get("X-Exception"), "")
 	body, _ := ioutil.ReadAll(rr.Body)
-	assert.True(string(body) == "pass")
+	assert.Equal(string(body), "pass")
 }
