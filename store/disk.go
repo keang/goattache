@@ -58,7 +58,7 @@ func (d Disk) Open(relPath string) (f SavedFile, e error) {
 		return
 	}
 	f.Geometry = fmt.Sprintf("%vx%v", conf.Width, conf.Height)
-	f.ContentType = format
+	f.ContentType = "image/" + format
 
 	stat, e := file.Stat()
 	if e != nil {

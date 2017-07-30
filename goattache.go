@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/keang/goattache/store"
 	"github.com/keang/goattache/utils"
@@ -17,9 +18,11 @@ type Goattache struct {
 
 func (g Goattache) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(2 << 24) // 32 MB
-	relPath := generatePath(r.Form.Get("file"))
+	filename := r.Form.Get("file")
+	filename = strings.Replace(filename, "%", "_", -1)
+	relPath := generatePath(filename)
 	for g.Store.Exists(relPath) {
-		relPath = generatePath(r.Form.Get("file"))
+		relPath = generatePath(filename)
 	}
 	saved, err := g.Store.Save(r.Body, relPath)
 	if err != nil {

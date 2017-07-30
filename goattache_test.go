@@ -49,8 +49,9 @@ func TestUploadHandler(t *testing.T) {
 	jsonBytes, _ := ioutil.ReadAll(rr.Body)
 	err = json.Unmarshal(jsonBytes, &res)
 	assert.Nil(err, t)
-	assert.Equal(filepath.Base(res.Path), filename)
+	assert.Equal(filepath.Base(res.Path), "Exãmpl_e _1.234 _20.png")
 	assert.Equal(res.Geometry, "20x16")
+	assert.Equal(res.ContentType, "image/png")
 	assert.Equal(res.Size, int64(2212))
 	assert.Equal(rr.Code, http.StatusCreated)
 }
