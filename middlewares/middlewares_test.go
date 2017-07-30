@@ -1,45 +1,49 @@
-package handlers
+package middlewares
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/keang/goattache/utils"
 )
 
+func dummyHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "pass")
+	})
+}
+
 func TestNoAuthorization(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(UploadHandler)
+	handler := Authorize("", dummyHandler())
 
-	secret := os.Getenv("ATTACHE_SECRET_KEY")
-	if err := os.Setenv("ATTACHE_SECRET_KEY", ""); err != nil {
-		t.Fatal(err)
-	}
-
-	req := httptest.NewRequest("POST", "/upload", nil)
+	req := httptest.NewRequest("POST", "/example", nil)
 	handler.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusUnauthorized {
-		t.Error("Wrong status code.")
+	if status := rr.Code; status != http.StatusOK {
+		t.Error("Wrong status code")
 	}
-
-	if err := os.Setenv("ATTACHE_SECRET_KEY", secret); err != nil {
-		t.Fatal(err)
+	if hException := rr.Header().Get("X-Exception"); hException != "" {
+		t.Error("Wrong X-Exception header.")
+	}
+	if body, _ := ioutil.ReadAll(rr.Body); string(body) != "pass" {
+		t.Error("Wrong response body")
 	}
 }
 
 func TestInvalidSignature(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(UploadHandler)
+	secret := "secretkey"
+	handler := Authorize(secret, dummyHandler())
 
-	// signed with "wrong#{key}"
-	hmac := utils.SignHMAC("wrong"+os.Getenv("ATTACHE_SECRET_KEY"), "random1501349484")
+	hmac := utils.SignHMAC("wrongkey", "random1501349484")
 	values := url.Values{"expiration": {"1501349484"}, "uuid": {"random"}, "hmac": {hmac}}
 	req := httptest.NewRequest("POST",
-		"/upload",
+		"/example",
 		strings.NewReader(values.Encode()),
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -52,14 +56,16 @@ func TestInvalidSignature(t *testing.T) {
 	}
 }
 
-func TestValidSignature(t *testing.T) {
+func TestValidAuthorization(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(UploadHandler)
+	secret := "secretkey"
+	handler := Authorize(secret, dummyHandler())
+
 	// valid hmac
-	hmac := utils.SignHMAC(os.Getenv("ATTACHE_SECRET_KEY"), "random1501349484")
+	hmac := utils.SignHMAC(secret, "random1501349484")
 	values := url.Values{"expiration": {"1501349484"}, "uuid": {"random"}, "hmac": {hmac}}
 	req := httptest.NewRequest("POST",
-		"/upload",
+		"/example",
 		strings.NewReader(values.Encode()),
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -69,5 +75,8 @@ func TestValidSignature(t *testing.T) {
 	}
 	if hException := rr.Header().Get("X-Exception"); hException != "" {
 		t.Error("Wrong X-Exception header.")
+	}
+	if body, _ := ioutil.ReadAll(rr.Body); string(body) != "pass" {
+		t.Error("Wrong response body")
 	}
 }
