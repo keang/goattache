@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keang/goattache/testutils"
 	"github.com/keang/goattache/utils"
 )
 
@@ -19,18 +20,20 @@ func dummyHandler() http.Handler {
 }
 
 func TestNoAuthorization(t *testing.T) {
+	assert := testutils.Assert{t}
 	rr := httptest.NewRecorder()
 	handler := Authorize("", dummyHandler())
 
 	req := httptest.NewRequest("POST", "/example", nil)
 	handler.ServeHTTP(rr, req)
-	utils.Assert("is OK", rr.Code == http.StatusOK, t)
-	utils.Assert("empty exception", rr.Header().Get("X-Exception") == "", t)
+	assert.True(rr.Code == http.StatusOK)
+	assert.True(rr.Header().Get("X-Exception") == "")
 	body, _ := ioutil.ReadAll(rr.Body)
-	utils.Assert("correct body", string(body) == "pass", t)
+	assert.True(string(body) == "pass")
 }
 
 func TestInvalidSignature(t *testing.T) {
+	assert := testutils.Assert{t}
 	rr := httptest.NewRecorder()
 	secret := "secretkey"
 	handler := Authorize(secret, dummyHandler())
@@ -43,11 +46,12 @@ func TestInvalidSignature(t *testing.T) {
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	handler.ServeHTTP(rr, req)
-	utils.Assert("is UNAUTHORIZED", rr.Code == http.StatusUnauthorized, t)
-	utils.Assert("contains exception", rr.Header().Get("X-Exception") == "Authorization failed", t)
+	assert.True(rr.Code == http.StatusUnauthorized)
+	assert.True(rr.Header().Get("X-Exception") == "Authorization failed")
 }
 
 func TestValidAuthorization(t *testing.T) {
+	assert := testutils.Assert{t}
 	rr := httptest.NewRecorder()
 	secret := "secretkey"
 	handler := Authorize(secret, dummyHandler())
@@ -61,8 +65,8 @@ func TestValidAuthorization(t *testing.T) {
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	handler.ServeHTTP(rr, req)
-	utils.Assert("is OK", rr.Code == http.StatusOK, t)
-	utils.Assert("empty exception", rr.Header().Get("X-Exception") == "", t)
+	assert.True(rr.Code == http.StatusOK)
+	assert.True(rr.Header().Get("X-Exception") == "")
 	body, _ := ioutil.ReadAll(rr.Body)
-	utils.Assert("correct body", string(body) == "pass", t)
+	assert.True(string(body) == "pass")
 }
